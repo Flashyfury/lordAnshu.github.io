@@ -265,6 +265,33 @@
             transform: translateY(0) scale(0.98);
         }
 
+        /* Toast notification styling */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 15px;
+            z-index: 10000;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
         /* Floating love emojis */
         .emoji {
             position: fixed;
@@ -419,7 +446,22 @@
     <!-- Love emoji container -->
     <div id="emojiContainer"></div>
 
+    <!-- Toast notification -->
+    <div id="toast" class="toast">emaaa parenaa, parenaaa 😛</div>
+
     <script>
+        // === Toast Notification Logic ===
+        let toastTimeout;
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
         // === Floating emoji generation ===
         const emojiContainer = document.getElementById('emojiContainer');
         const emojis = ['❤️', '💕', '💖', '💘', '😍', '🥰', '✨', '💫', '🌹'];
@@ -516,6 +558,9 @@
             document.getElementById('congratulations').style.display = 'block';
             document.querySelector('.button-row').style.display = 'none';
             if (noButton.parentNode) noButton.remove(); 
+            
+            // Hide toast if it's showing
+            document.getElementById('toast').classList.remove('show');
         });
 
         // === No button handler — teleport away ===
@@ -524,6 +569,9 @@
 
         function teleportNoButton(e) {
             if (e) e.preventDefault();
+            
+            // Show the teasing toast
+            showToast();
             
             // CRITICAL: Move button to body to escape container's backdrop-filter 
             // which breaks 'position: fixed' coordinates.
@@ -540,13 +588,11 @@
             let randomX, randomY;
             let attempts = 0;
 
-            // Find a spot that's on screen and NOT behind the card
             do {
                 randomX = margin + Math.random() * (viewportWidth - btnRect.width - margin * 2);
                 randomY = margin + Math.random() * (viewportHeight - btnRect.height - margin * 2);
                 attempts++;
                 
-                // Avoid the card area + a small buffer
                 var overlapsCard = (
                     randomX < cardRect.right + 20 &&
                     randomX + btnRect.width > cardRect.left - 20 &&
